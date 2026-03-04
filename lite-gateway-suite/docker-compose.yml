@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Redis - 配置存储 + 通知
+  redis:
+    image: redis:7-alpine
+    container_name: lite-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - lite-gateway-network
+
+  # Nacos - 服务发现（可选）
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: lite-gateway-nacos
+    ports:
+      - "8848:8848"
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+    networks:
+      - lite-gateway-network
+
+  # Admin 服务 - 管理端
+  lite-gateway-admin:
+    build: ./lite-gateway-admin
+    container_name: lite-gateway-admin
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - NACOS_SERVER_ADDR=nacos:8848
+    depends_on:
+      - redis
+      - nacos
+    networks:
+      - lite-gateway-network
+
+  # Gateway 服务 - 网关
+  lite-gateway-core:
+    build: ./lite-gateway-core
+    container_name: lite-gateway-core
+    ports:
+      - "80:80"
+    environment:
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - NACOS_SERVER_ADDR=nacos:8848
+    depends_on:
+      - redis
+      - nacos
+      - lite-gateway-admin
+    networks:
+      - lite-gateway-network
+
+  # UI 服务 - 前端
+  lite-gateway-ui:
+    build: ./lite-gateway-ui
+    container_name: lite-gateway-ui
+    ports:
+      - "8000:80"
+    depends_on:
+      - lite-gateway-admin
+    networks:
+      - lite-gateway-network
+
+volumes:
+  redis_data:
+
+networks:
+  lite-gateway-network:
+    driver: bridge

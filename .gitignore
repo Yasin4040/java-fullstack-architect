@@ -1,0 +1,172 @@
+# ============================================
+# 用户指定排除
+# ============================================
+oldProject/
+
+# ============================================
+# Java / Maven / Gradle
+# ============================================
+# 编译输出
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# ============================================
+# IDE - IntelliJ IDEA
+# ============================================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
+
+# IDE - NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ============================================
+# 前端 - Node.js / npm / yarn
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# 前端构建输出
+dist/
+dist-ssr/
+build/
+*.local
+
+# 包管理器锁文件（根据团队需要选择是否忽略）
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# 前端缓存
+.eslintcache
+.stylelintcache
+.parcel-cache
+
+# ============================================
+# 日志文件
+# ============================================
+logs/
+*.log
+*.log.*
+
+# ============================================
+# 操作系统文件
+# ============================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.nfs*
+
+# ============================================
+# 临时文件
+# ============================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ============================================
+# 测试相关
+# ============================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ============================================
+# 环境配置文件（包含敏感信息）
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# ============================================
+# Docker
+# ============================================
+.dockerignore
+
+# ============================================
+# 其他
+# ============================================
+*.pid
+*.seed
+*.pid.lock
+.cache/

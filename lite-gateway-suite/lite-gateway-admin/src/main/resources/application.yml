@@ -1,0 +1,190 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: lite-gateway-admin
+
+  # 数据源配置
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:lite_gateway}?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      test-on-borrow: true
+      test-while-idle: true
+      validation-query: SELECT 1
+
+  # Redis 配置
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # Nacos 配置
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+  flyway:
+    enabled:
+      locations: classpath:db/migration
+      baseline-on-migrate: true
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# Flyway 配置
+
+# ==========================================
+# Lite Gateway 认证配置
+# ==========================================
+# 支持三种认证模式，通过 lite.gateway.auth.type 切换
+#
+# 1. JWT 模式（默认）- 适合中小团队快速启动
+# 2. OAuth2 模式 - 适合已有统一认证中心的企业
+# 3. LDAP 模式 - 适合已有 AD/LDAP 的企业
+# ==========================================
+lite:
+  gateway:
+    auth:
+      # 认证类型：jwt | oauth2 | ldap
+      # 切换方式：修改此配置后重启服务即可
+      type: ${AUTH_TYPE:jwt}
+
+      # ======================================
+      # 模式一：JWT 内置认证（默认）
+      # 特点：零依赖，开箱即用，适合中小团队
+      # ======================================
+      jwt:
+        # JWT 签名密钥（生产环境务必修改！）
+        secret: ${JWT_SECRET:lite-gateway-secret-key-change-in-production}
+        # Access Token 有效期（毫秒）
+        access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}      # 1小时
+        # Refresh Token 有效期（毫秒）
+        refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7天
+        # 是否允许多设备登录
+        allow-multi-login: ${JWT_MULTI_LOGIN:true}
+
+      # ======================================
+      # 模式二：OAuth2 集成（企业级）
+      # 适合场景：已有 Spring Security OAuth2 / Keycloak / Authing 等
+      # 切换命令：export AUTH_TYPE=oauth2
+      # ======================================
+      oauth2:
+        # OAuth2 提供商类型：generic | keycloak | authing | okta
+        provider: ${OAUTH2_PROVIDER:generic}
+        # 授权服务器地址
+        issuer-uri: ${OAUTH2_ISSUER_URI:}
+        # JWT 公钥地址（用于验证 Token）
+        jwk-set-uri: ${OAUTH2_JWK_URI:}
+        # 客户端配置（用于获取用户信息）
+        client-id: ${OAUTH2_CLIENT_ID:}
+        client-secret: ${OAUTH2_CLIENT_SECRET:}
+        # 用户信息端点（OAuth2 标准）
+        user-info-uri: ${OAUTH2_USER_INFO_URI:}
+        # 角色映射（将外部角色映射为系统角色）
+        role-mapping:
+          ADMIN: gateway-admin      # 外部角色 -> 系统角色
+          OPERATOR: gateway-operator
+          VIEWER: gateway-viewer
+
+      # ======================================
+      # 模式三：LDAP/AD 集成
+      # 适合场景：已有 Windows AD 或 OpenLDAP
+      # 切换命令：export AUTH_TYPE=ldap
+      # ======================================
+      ldap:
+        # LDAP 服务器地址
+        url: ${LDAP_URL:}
+        # 基础 DN
+        base-dn: ${LDAP_BASE_DN:}
+        # 管理员 DN（用于查询用户信息）
+        manager-dn: ${LDAP_MANAGER_DN:}
+        manager-password: ${LDAP_MANAGER_PASSWORD:}
+        # 用户搜索配置
+        user-search-base: ${LDAP_USER_BASE:ou=users}
+        user-search-filter: ${LDAP_USER_FILTER:(uid={0})}
+        # 组/角色搜索配置
+        group-search-base: ${LDAP_GROUP_BASE:ou=groups}
+        group-search-filter: ${LDAP_GROUP_FILTER:(member={0})}
+        # 属性映射
+        attribute-mapping:
+          username: uid
+          email: mail
+          real-name: cn
+
+# ==========================================
+# 团队集成快速指南
+# ==========================================
+#
+# 【场景1：5人小团队，快速启动】
+# 无需修改配置，使用默认 JWT 模式
+# 默认账号：admin / 123456
+# 登录后修改密码即可
+#
+# 【场景2：已有 Spring Security OAuth2】
+# 1. 设置环境变量：
+#    export AUTH_TYPE=oauth2
+#    export OAUTH2_ISSUER_URI=http://your-oauth2-server:8080
+#    export OAUTH2_CLIENT_ID=lite-gateway
+#    export OAUTH2_CLIENT_SECRET=xxx
+#
+# 2. 重启服务，登录将跳转至 OAuth2 授权页
+#
+# 【场景3：已有 Keycloak】
+# 1. 设置环境变量：
+#    export AUTH_TYPE=oauth2
+#    export OAUTH2_PROVIDER=keycloak
+#    export OAUTH2_ISSUER_URI=http://keycloak:8080/realms/your-realm
+#
+# 2. 重启即可
+#
+# 【场景4：已有 Windows AD】
+# 1. 设置环境变量：
+#    export AUTH_TYPE=ldap
+#    export LDAP_URL=ldap://ad.your-company.com:389
+#    export LDAP_BASE_DN=dc=company,dc=com
+#
+# 2. 重启即可使用域账号登录
+#
+# ==========================================
+
+# 旧版 JWT 配置（兼容）
+jwt:
+  secret: ${JWT_SECRET:lite-gateway-secret-key-for-jwt-signing}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24小时
+
+# 日志配置
+logging:
+  level:
+    com.litegateway: INFO
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

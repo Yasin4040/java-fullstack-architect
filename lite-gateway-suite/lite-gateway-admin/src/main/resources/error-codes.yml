@@ -1,0 +1,117 @@
+# Lite Gateway 错误码配置
+# 此文件用于自定义错误码，会覆盖内置默认配置
+# 如果不需要自定义，可以删除此文件或保持空文件
+
+# ============================================
+# 成功码配置（必须配置一个 success: true 的码）
+# ============================================
+- code: "00000"
+  message: "成功"
+  level: "info"
+  action: "none"
+  success: true
+  showNotification: false
+
+# ============================================
+# 认证相关错误
+# ============================================
+- code: "A0201"
+  message: "用户账户不存在"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+- code: "A0210"
+  message: "用户密码错误"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+- code: "A0230"
+  message: "用户登录已过期"
+  level: "warning"
+  action: "logout"
+  showNotification: true
+  duration: 3
+
+- code: "A0231"
+  message: "用户未登录"
+  level: "warning"
+  action: "logout"
+  showNotification: true
+  duration: 3
+
+# ============================================
+# 权限相关错误
+# ============================================
+- code: "A0301"
+  message: "访问未授权"
+  level: "warning"
+  action: "redirect"
+  redirectUrl: "/403"
+  showNotification: true
+  duration: 3
+
+# ============================================
+# 参数相关错误
+# ============================================
+- code: "A0400"
+  message: "用户请求参数错误"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+- code: "A0404"
+  message: "找不到路径"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+# ============================================
+# 系统错误
+# ============================================
+- code: "B0001"
+  message: "系统执行出错"
+  level: "error"
+  action: "none"
+  showNotification: true
+  duration: 5
+  logStackTrace: true
+
+- code: "B0210"
+  message: "系统限流"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+# ============================================
+# 网关错误
+# ============================================
+- code: "G0001"
+  message: "网关路由不存在"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+- code: "G0002"
+  message: "网关路由已存在"
+  level: "warning"
+  action: "none"
+  showNotification: true
+  duration: 3
+
+# ============================================
+# 自定义错误码示例（取消注释即可使用）
+# ============================================
+# - code: "CUSTOM_001"
+#   message: "自定义业务错误"
+#   level: "warning"
+#   action: "none"
+#   showNotification: true
+#   duration: 3
