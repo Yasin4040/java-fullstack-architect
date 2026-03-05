@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { 
-  PageResult, 
+  PageBody, 
   SysUser, 
   UserQuery,
   LoginParams,
@@ -10,8 +10,10 @@ import type {
   UserInfo
 } from '@/types/api'
 
-// 用户管理 API
+// 用户认证管理 API - 与后端 AuthController 保持一致
 export const userApi = {
+  // ==================== 认证相关接口 ====================
+
   // 用户登录 - POST /auth/login
   login: (data: LoginParams) => {
     return request.post<any, LoginResult>('/auth/login', data)
@@ -37,51 +39,53 @@ export const userApi = {
     return request.get<any, AuthConfig>('/auth/config')
   },
 
-  // 分页查询用户列表
-  getUserPage: (params: UserQuery) => {
-    return request.get<any, PageResult<SysUser>>('/system/user/page', { params })
+  // 修改密码 - PATCH /auth/password
+  changePassword: (oldPassword: string, newPassword: string) => {
+    return request.patch<any, void>('/auth/password', { oldPassword, newPassword })
   },
 
-  // 获取所有用户
-  getAllUsers: () => {
+  // ==================== 用户管理接口 ====================
+
+  // 分页查询用户列表 - GET /system/user/page
+  getUserPage: (params: UserQuery) => {
+    return request.get<any, PageBody<SysUser>>('/system/user/page', { params })
+  },
+
+  // 获取所有用户 - GET /system/user/list
+  getUserList: () => {
     return request.get<any, SysUser[]>('/system/user/list')
   },
 
-  // 根据ID获取用户
+  // 根据ID获取用户 - GET /system/user/{id}
   getUserById: (id: number) => {
     return request.get<any, SysUser>(`/system/user/${id}`)
   },
 
-  // 添加用户
+  // 添加用户 - POST /system/user
   addUser: (data: SysUser) => {
     return request.post<any, void>('/system/user', data)
   },
 
-  // 更新用户
+  // 更新用户 - PUT /system/user/{id}
   updateUser: (id: number, data: SysUser) => {
     return request.put<any, void>(`/system/user/${id}`, data)
   },
 
-  // 删除用户
+  // 删除用户 - DELETE /system/user/{id}
   deleteUser: (id: number) => {
     return request.delete<any, void>(`/system/user/${id}`)
   },
 
-  // 修改用户状态
+  // 修改用户状态 - PATCH /system/user/{id}/status
   updateUserStatus: (id: number, status: number) => {
     return request.patch<any, void>(`/system/user/${id}/status`, null, {
       params: { status }
     })
   },
 
-  // 重置密码
+  // 重置密码 - PATCH /system/user/{id}/password
   resetPassword: (id: number, newPassword: string) => {
     return request.patch<any, void>(`/system/user/${id}/password`, { newPassword })
-  },
-
-  // 修改密码
-  changePassword: (oldPassword: string, newPassword: string) => {
-    return request.patch<any, void>('/auth/password', { oldPassword, newPassword })
   }
 }
 

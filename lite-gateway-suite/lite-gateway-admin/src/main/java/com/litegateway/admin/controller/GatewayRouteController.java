@@ -49,6 +49,16 @@ public class GatewayRouteController {
     }
 
     /**
+     * 分页查询路由
+     */
+    @GetMapping("/list")
+    @Operation(summary = "分页查询路由", description = "分页查询网关路由列表")
+    public Result<List<RouteVO>> selectRouteList(@Validated @ModelAttribute RouteQuery query) {
+        List<RouteVO> routeList = gatewayRouteService.selectRouteList(query);
+        return Result.ok(routeList);
+    }
+
+    /**
      * 获取单个路由
      */
     @GetMapping("/{id}")

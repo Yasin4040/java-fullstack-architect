@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { 
-  PageResult, 
+  PageBody, 
   RateLimitRule, 
   RateLimitQuery 
 } from '@/types/api'
@@ -9,7 +9,7 @@ import type {
 export const rateLimitApi = {
   // 分页查询限流规则列表
   getRateLimitPage: (params: RateLimitQuery) => {
-    return request.get<any, PageResult<RateLimitRule>>('/gateway/rate-limit/page', { params })
+    return request.get<any, PageBody<RateLimitRule>>('/gateway/rate-limit/page', { params })
   },
 
   // 获取所有限流规则

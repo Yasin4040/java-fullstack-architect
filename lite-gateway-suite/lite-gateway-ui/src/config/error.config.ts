@@ -2,8 +2,9 @@ import type { ErrorCodeConfig } from '@/types/error'
 
 // 默认错误码配置（本地兜底配置）
 export const defaultErrorCodes: ErrorCodeConfig[] = [
-  // 成功码
+  // 成功码 - 支持多种格式
   { code: '00000', message: '成功', level: 'info', action: 'none', success: true, showNotification: false },
+  { code: '0', message: '成功', level: 'info', action: 'none', success: true, showNotification: false },
 
   // 认证相关
   { code: 'A0201', message: '用户账户不存在', level: 'warning', action: 'none' },

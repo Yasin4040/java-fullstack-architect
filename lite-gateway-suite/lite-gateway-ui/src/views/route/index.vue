@@ -3,17 +3,17 @@
     <!-- 搜索栏 -->
     <a-card class="search-card" :bordered="false">
       <a-form layout="inline" :model="queryForm">
-        <a-form-item label="路由ID">
+        <a-form-item label="路由名称">
           <a-input
-            v-model:value="queryForm.routeId"
-            placeholder="请输入路由ID"
+            v-model:value="queryForm.name"
+            placeholder="请输入路由名称"
             allow-clear
           />
         </a-form-item>
-        <a-form-item label="路由名称">
+        <a-form-item label="服务地址">
           <a-input
-            v-model:value="queryForm.routeName"
-            placeholder="请输入路由名称"
+            v-model:value="queryForm.uri"
+            placeholder="请输入服务地址"
             allow-clear
           />
         </a-form-item>
@@ -25,8 +25,8 @@
             style="width: 120px"
           >
             <a-select-option value="">全部</a-select-option>
-            <a-select-option :value="1">启用</a-select-option>
-            <a-select-option :value="0">禁用</a-select-option>
+            <a-select-option value="0">启用</a-select-option>
+            <a-select-option value="1">禁用</a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item>
@@ -72,16 +72,13 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'status'">
             <a-switch
-              :checked="record.status === 1"
+              :checked="record.status === '0'"
               :loading="statusLoading === record.id"
               @change="(checked) => handleStatusChange(record, checked)"
             />
           </template>
           <template v-if="column.key === 'uri'">
             <a-typography-text copyable>{{ record.uri }}</a-typography-text>
-          </template>
-          <template v-if="column.key === 'orderNum'">
-            <a-tag color="blue">{{ record.orderNum }}</a-tag>
           </template>
           <template v-if="column.key === 'action'">
             <a-space>
@@ -125,27 +122,26 @@
       >
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item label="路由ID" name="routeId">
+            <a-form-item label="路由名称" name="name">
               <a-input
-                v-model:value="formData.routeId"
-                placeholder="请输入路由ID，如：user-service"
-                :disabled="isEdit"
-              />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="路由名称" name="routeName">
-              <a-input
-                v-model:value="formData.routeName"
+                v-model:value="formData.name"
                 placeholder="请输入路由名称"
               />
             </a-form-item>
           </a-col>
+          <a-col :span="12">
+            <a-form-item label="系统代号" name="systemCode">
+              <a-input
+                v-model:value="formData.systemCode"
+                placeholder="请输入系统代号"
+              />
+            </a-form-item>
+          </a-col>
         </a-row>
-        <a-form-item label="目标URI" name="uri">
+        <a-form-item label="服务地址" name="uri">
           <a-input
             v-model:value="formData.uri"
-            placeholder="请输入目标URI，如：lb://user-service 或 http://localhost:8080"
+            placeholder="请输入服务地址，如：lb://user-service 或 http://localhost:8080"
           />
         </a-form-item>
         <a-form-item label="路径断言" name="path">
@@ -156,32 +152,25 @@
         </a-form-item>
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item label="优先级" name="orderNum">
+            <a-form-item label="断言截取" name="stripPrefix">
               <a-input-number
-                v-model:value="formData.orderNum"
+                v-model:value="formData.stripPrefix"
                 :min="0"
-                :max="9999"
+                :max="10"
                 style="width: 100%"
-                placeholder="数字越小优先级越高"
+                placeholder="请输入断言截取层数"
               />
             </a-form-item>
           </a-col>
           <a-col :span="12">
             <a-form-item label="状态" name="status">
               <a-radio-group v-model:value="formData.status">
-                <a-radio :value="1">启用</a-radio>
-                <a-radio :value="0">禁用</a-radio>
+                <a-radio value="0">启用</a-radio>
+                <a-radio value="1">禁用</a-radio>
               </a-radio-group>
             </a-form-item>
           </a-col>
         </a-row>
-        <a-form-item label="描述" name="description">
-          <a-textarea
-            v-model:value="formData.description"
-            :rows="3"
-            placeholder="请输入路由描述"
-          />
-        </a-form-item>
       </a-form>
     </a-modal>
 
@@ -193,19 +182,20 @@
       width="700px"
     >
       <a-descriptions :column="2" bordered>
-        <a-descriptions-item label="路由ID">{{ currentRoute?.routeId }}</a-descriptions-item>
-        <a-descriptions-item label="路由名称">{{ currentRoute?.routeName }}</a-descriptions-item>
-        <a-descriptions-item label="目标URI" :span="2">{{ currentRoute?.uri }}</a-descriptions-item>
-        <a-descriptions-item label="路径断言" :span="2">{{ currentRoute?.path || '-' }}</a-descriptions-item>
-        <a-descriptions-item label="优先级">{{ currentRoute?.orderNum }}</a-descriptions-item>
+        <a-descriptions-item label="ID">{{ currentRoute?.id }}</a-descriptions-item>
+        <a-descriptions-item label="路由名称">{{ currentRoute?.name }}</a-descriptions-item>
+        <a-descriptions-item label="系统代号">{{ currentRoute?.systemCode || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="服务地址" :span="2">{{ currentRoute?.uri }}</a-descriptions-item>
+        <a-descriptions-item label="路径断言">{{ currentRoute?.path || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="断言截取">{{ currentRoute?.stripPrefix || '-' }}</a-descriptions-item>
         <a-descriptions-item label="状态">
-          <a-tag :color="currentRoute?.status === 1 ? 'success' : 'error'">
-            {{ currentRoute?.status === 1 ? '启用' : '禁用' }}
+          <a-tag :color="currentRoute?.status === '0' ? 'success' : 'error'">
+            {{ currentRoute?.status === '0' ? '启用' : '禁用' }}
           </a-tag>
         </a-descriptions-item>
+        <a-descriptions-item label="限流器">{{ currentRoute?.filterRateLimiterName || '-' }}</a-descriptions-item>
         <a-descriptions-item label="创建时间">{{ currentRoute?.createTime }}</a-descriptions-item>
         <a-descriptions-item label="更新时间">{{ currentRoute?.updateTime }}</a-descriptions-item>
-        <a-descriptions-item label="描述" :span="2">{{ currentRoute?.description || '-' }}</a-descriptions-item>
       </a-descriptions>
     </a-modal>
   </div>
@@ -213,7 +203,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { message, Modal } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import {
   SearchOutlined,
@@ -224,14 +214,14 @@ import {
   EyeOutlined
 } from '@ant-design/icons-vue'
 import { useRouteStore } from '@/store/modules/route'
-import type { Route, RouteQuery } from '@/types/api'
+import type { RouteVO, RouteDTO, RouteQuery } from '@/types/api'
 
 const routeStore = useRouteStore()
 
 // 查询表单
 const queryForm = reactive<RouteQuery>({
-  routeId: '',
-  routeName: '',
+  name: '',
+  uri: '',
   status: '',
   pageNum: 1,
   pageSize: 10
@@ -239,11 +229,11 @@ const queryForm = reactive<RouteQuery>({
 
 // 表格列
 const columns = [
-  { title: '路由ID', dataIndex: 'routeId', key: 'routeId', width: 150 },
-  { title: '路由名称', dataIndex: 'routeName', key: 'routeName', width: 150 },
-  { title: '目标URI', dataIndex: 'uri', key: 'uri', ellipsis: true },
+  { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
+  { title: '路由名称', dataIndex: 'name', key: 'name', width: 150 },
+  { title: '系统代号', dataIndex: 'systemCode', key: 'systemCode', width: 120 },
+  { title: '服务地址', dataIndex: 'uri', key: 'uri', ellipsis: true },
   { title: '路径', dataIndex: 'path', key: 'path', width: 180 },
-  { title: '优先级', dataIndex: 'orderNum', key: 'orderNum', width: 80 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
   { title: '操作', key: 'action', width: 200, fixed: 'right' }
@@ -265,27 +255,24 @@ const modalLoading = ref(false)
 const modalTitle = ref('新增路由')
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
-const currentRoute = ref<Route | null>(null)
+const currentRoute = ref<RouteVO | null>(null)
 const detailVisible = ref(false)
 const statusLoading = ref<number | null>(null)
 
 // 表单数据
-const formData = reactive<Route>({
-  routeId: '',
-  routeName: '',
+const formData = reactive<RouteDTO>({
+  name: '',
   uri: '',
   path: '',
-  orderNum: 0,
-  status: 1,
-  description: ''
+  stripPrefix: 0,
+  status: '0',
+  systemCode: ''
 })
 
 // 表单校验规则
 const formRules = {
-  routeId: [{ required: true, message: '请输入路由ID', trigger: 'blur' }],
-  routeName: [{ required: true, message: '请输入路由名称', trigger: 'blur' }],
-  uri: [{ required: true, message: '请输入目标URI', trigger: 'blur' }],
-  orderNum: [{ required: true, message: '请输入优先级', trigger: 'blur' }]
+  name: [{ required: true, message: '请输入路由名称', trigger: 'blur' }],
+  uri: [{ required: true, message: '请输入服务地址', trigger: 'blur' }]
 }
 
 // 查询
@@ -296,8 +283,8 @@ const handleQuery = () => {
 
 // 重置
 const handleReset = () => {
-  queryForm.routeId = ''
-  queryForm.routeName = ''
+  queryForm.name = ''
+  queryForm.uri = ''
   queryForm.status = ''
   queryForm.pageNum = 1
   loadData()
@@ -327,7 +314,7 @@ const handleAdd = () => {
 }
 
 // 编辑
-const handleEdit = (record: Route) => {
+const handleEdit = (record: RouteVO) => {
   isEdit.value = true
   modalTitle.value = '编辑路由'
   Object.assign(formData, record)
@@ -335,15 +322,15 @@ const handleEdit = (record: Route) => {
 }
 
 // 查看详情
-const handleView = (record: Route) => {
+const handleView = (record: RouteVO) => {
   currentRoute.value = record
   detailVisible.value = true
 }
 
 // 删除
-const handleDelete = async (record: Route) => {
+const handleDelete = async (record: RouteVO) => {
   try {
-    await routeStore.deleteRoute(record.id!)
+    await routeStore.deleteRoute(record.id)
     message.success('删除成功')
     loadData()
   } catch (error) {
@@ -352,11 +339,11 @@ const handleDelete = async (record: Route) => {
 }
 
 // 状态变更
-const handleStatusChange = async (record: Route, checked: boolean) => {
-  statusLoading.value = record.id!
+const handleStatusChange = async (record: RouteVO, checked: boolean) => {
+  statusLoading.value = record.id
   try {
-    const newStatus = checked ? 1 : 0
-    await routeStore.updateRouteStatus(record.id!, newStatus)
+    const newStatus = checked ? '0' : '1'
+    await routeStore.updateRouteStatus(record.id, newStatus)
     message.success('状态更新成功')
     loadData()
   } catch (error) {
@@ -408,13 +395,12 @@ const handleModalCancel = () => {
 // 重置表单
 const resetForm = () => {
   formData.id = undefined
-  formData.routeId = ''
-  formData.routeName = ''
+  formData.name = ''
   formData.uri = ''
   formData.path = ''
-  formData.orderNum = 0
-  formData.status = 1
-  formData.description = ''
+  formData.stripPrefix = 0
+  formData.status = '0'
+  formData.systemCode = ''
   formRef.value?.resetFields()
 }
 

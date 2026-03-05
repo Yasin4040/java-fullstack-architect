@@ -147,6 +147,41 @@ public class GatewayRouteServiceImpl extends ServiceImpl<GatewayRouteMapper, Gat
     }
 
     @Override
+    public List<RouteVO> selectRouteList(RouteQuery query) {
+        LambdaQueryWrapper<GatewayRoute> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(GatewayRoute::getDeleted, 0);
+
+        // 状态过滤
+        if (StrUtil.isNotBlank(query.getStatus()) && !"2".equals(query.getStatus())) {
+            wrapper.eq(GatewayRoute::getStatus, Integer.valueOf(query.getStatus()));
+        }
+
+        // 名称模糊查询
+        if (StrUtil.isNotBlank(query.getName())) {
+            wrapper.like(GatewayRoute::getName, query.getName());
+        }
+
+        // URI 模糊查询ss
+        if (StrUtil.isNotBlank(query.getUri())) {
+            wrapper.like(GatewayRoute::getUri, query.getUri());
+        }
+
+        // Path 模糊查询
+        if (StrUtil.isNotBlank(query.getPath())) {
+            wrapper.like(GatewayRoute::getPath, query.getPath());
+        }
+
+        wrapper.orderByDesc(GatewayRoute::getCreateTime);
+
+
+        List<GatewayRoute> list = this.list(wrapper);
+
+        return list.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void reloadConfig() {
         // 发布 Redis 消息通知网关刷新路由
         redisTemplate.convertAndSend(RedisTypeConstants.CHANNEL, RedisTypeConstants.ROUTE_UPDATE);

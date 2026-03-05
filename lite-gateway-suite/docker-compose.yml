@@ -47,11 +47,12 @@ services:
     build: ./lite-gateway-core
     container_name: lite-gateway-core
     ports:
-      - "80:80"
+      - "8088:8088"
     environment:
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
       - NACOS_SERVER_ADDR=nacos:8848
+      - ADMIN_URL=http://lite-gateway-admin:8080
     depends_on:
       - redis
       - nacos
@@ -67,6 +68,36 @@ services:
       - "8000:80"
     depends_on:
       - lite-gateway-admin
+    networks:
+      - lite-gateway-network
+
+  # ========== 测试服务 ==========
+
+  # 用户服务 - 测试用
+  user-service:
+    build: ./test-services/user-service
+    container_name: user-service
+    ports:
+      - "9001:9001"
+    environment:
+      - NACOS_SERVER=nacos:8848
+      - NACOS_ENABLED=true
+    depends_on:
+      - nacos
+    networks:
+      - lite-gateway-network
+
+  # 订单服务 - 测试用
+  order-service:
+    build: ./test-services/order-service
+    container_name: order-service
+    ports:
+      - "9002:9002"
+    environment:
+      - NACOS_SERVER=nacos:8848
+      - NACOS_ENABLED=true
+    depends_on:
+      - nacos
     networks:
       - lite-gateway-network
 

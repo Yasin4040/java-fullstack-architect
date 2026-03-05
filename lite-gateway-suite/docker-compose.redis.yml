@@ -1,0 +1,56 @@
+version: '3.8'
+
+# Redis 独立启动配置
+# 用途：单独启动 Redis 缓存服务
+# 适用场景：
+#   - 本地开发，需要独立的 Redis
+#   - 已有 Nacos，只需要 Redis
+#   - 快速测试缓存功能
+#
+# 使用方式：
+#   docker-compose -f docker-compose.redis.yml up -d
+#
+# 连接信息：
+#   - 主机: localhost
+#   - 端口: 6379
+#   - 密码: 无（开发环境）
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: lite-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      # 持久化数据
+      - redis_data:/data
+      # 可选：自定义配置文件
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    networks:
+      - lite-gateway-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    # 资源限制（可选）
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #     reservations:
+    #       memory: 128M
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  lite-gateway-network:
+    driver: bridge

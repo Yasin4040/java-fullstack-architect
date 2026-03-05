@@ -96,4 +96,7 @@ public interface GatewayRouteService {
      * @return 路由DTO
      */
     RouteDTO getById(String id);
+
+
+    List<RouteVO> selectRouteList(RouteQuery query);
 }

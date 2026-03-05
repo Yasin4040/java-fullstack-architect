@@ -4,8 +4,8 @@ import { useUserStore } from '@/store/modules/user'
 import { errorConfigService } from '@/services/errorConfigService'
 import { useErrorHandler } from '@/hooks/useErrorHandler'
 
-// 不需要 Token 的白名单接口（支持字符串或正则）
-const WHITE_LIST = [
+// 不需要 Token 的白名单接口
+const WHITE_LIST: string[] = [
   '/login',
   '/auth/login',
   '/auth/register',
@@ -14,15 +14,22 @@ const WHITE_LIST = [
   '/auth/captcha'
 ]
 
+// 静默错误处理的接口（不显示错误消息）
+const SILENT_ERROR_LIST: string[] = [
+  '/auth/config',
+  '/config/error-codes'
+]
+
 
 // 检查 URL 是否在白名单中
 const isInWhiteList = (url: string): boolean => {
-  return WHITE_LIST.some(pattern => {
-    if (typeof pattern === 'string') {
-      return url.includes(pattern)
-    }
-    return pattern.test(url)
-  })
+  return WHITE_LIST.some(pattern => url.includes(pattern))
+}
+
+// 检查 URL 是否需要静默处理错误
+const isSilentError = (url: string | undefined): boolean => {
+  if (!url) return false
+  return SILENT_ERROR_LIST.some(pattern => url.includes(pattern))
 }
 
 // 创建 axios 实例
@@ -53,6 +60,12 @@ request.interceptors.request.use(
   }
 )
 
+// 默认成功码判断（用于 errorConfigService 初始化前）
+const isSuccessCodeDefault = (code: string | number): boolean => {
+  const codeStr = String(code)
+  return ['00000', '0', '200', 'success', 'ok'].includes(codeStr.toLowerCase())
+}
+
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -63,8 +76,12 @@ request.interceptors.response.use(
       return data
     }
 
-    // 处理业务错误 - 使用配置的成功码判断
-    if (!errorConfigService.isSuccessCode(data.code)) {
+    // 处理业务错误 - 使用配置的成功码判断（如果服务未加载完成，使用默认判断）
+    const isSuccess = errorConfigService.isLoaded()
+      ? errorConfigService.isSuccessCode(data.code)
+      : isSuccessCodeDefault(data.code)
+
+    if (!isSuccess) {
       const { handleBusinessError } = useErrorHandler()
       handleBusinessError({
         code: String(data.code),
@@ -78,14 +95,21 @@ request.interceptors.response.use(
     return data.data
   },
   (error: AxiosError) => {
-    const { response } = error
+    const { response, config } = error
     const { handleHttpError } = useErrorHandler()
+
+    // 检查是否需要静默处理
+    const silent = isSilentError(config?.url)
 
     if (response) {
       const { status, data } = response
-      handleHttpError(status, (data as { message?: string })?.message)
+      if (!silent) {
+        handleHttpError(status, (data as { message?: string })?.message)
+      }
     } else {
-      message.error('网络连接失败，请检查网络')
+      if (!silent) {
+        message.error('网络连接失败，请检查网络')
+      }
     }
 
     return Promise.reject(error)
