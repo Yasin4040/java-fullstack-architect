@@ -1,5 +1,15 @@
 server:
   port: 8088
+  # HTTPS 配置
+  # ssl:
+  #   enabled: true
+  #   key-store: classpath:keystore.p12
+  #   key-store-password: changeit
+  #   key-store-type: PKCS12
+  #   key-alias: tomcat
+  # HTTP 重定向到 HTTPS（可选）
+  # http:
+  #   port: 8080
 
 spring:
   application:
@@ -84,3 +94,20 @@ management:
       show-details: always
     gateway:
       enabled: true
+    prometheus:
+      enabled: true
+  health:
+    probes:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.9, 0.95, 0.99

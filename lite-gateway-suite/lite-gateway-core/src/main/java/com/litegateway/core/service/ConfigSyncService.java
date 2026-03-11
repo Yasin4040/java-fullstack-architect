@@ -9,7 +9,8 @@ import com.litegateway.core.dto.RouteDTO;
 import com.litegateway.core.dto.WhiteListDTO;
 import com.litegateway.core.route.DynamicRouteDefinitionRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,9 +24,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * 配置同步服务
  * 从 Admin 模块拉取配置并同步到本地缓存
  */
-@Slf4j
 @Service
 public class ConfigSyncService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConfigSyncService.class);
 
     @Autowired
     private AdminConfigClient adminConfigClient;
@@ -38,7 +40,7 @@ public class ConfigSyncService {
 
     @PostConstruct
     public void init() {
-        log.info("Initializing config sync service...");
+        logger.info("Initializing config sync service...");
         // 启动时立即同步一次配置
         syncConfig();
     }
@@ -48,7 +50,7 @@ public class ConfigSyncService {
      */
     @Scheduled(fixedRate = 30000)
     public void scheduledSync() {
-        log.debug("Scheduled config sync check...");
+        logger.debug("Scheduled config sync check...");
         checkAndSync();
     }
 
@@ -56,17 +58,17 @@ public class ConfigSyncService {
      * 强制同步配置（启动时或收到Redis通知时调用）
      */
     public void syncConfig() {
-        log.info("Syncing gateway config from admin...");
+        logger.info("Syncing gateway config from admin...");
         GatewayConfigDTO config = adminConfigClient.getGatewayConfig();
         
         if (config == null) {
-            log.error("Failed to fetch gateway config from admin");
+            logger.error("Failed to fetch gateway config from admin");
             return;
         }
         
         applyConfig(config);
         currentVersion.set(config.getVersion());
-        log.info("Gateway config synced successfully, version: {}", config.getVersion());
+        logger.info("Gateway config synced successfully, version: {}", config.getVersion());
     }
 
     /**
@@ -76,16 +78,16 @@ public class ConfigSyncService {
         Long serverVersion = adminConfigClient.getConfigVersion();
         
         if (serverVersion == null) {
-            log.warn("Failed to get config version from admin");
+            logger.warn("Failed to get config version from admin");
             return;
         }
         
         if (serverVersion.equals(currentVersion.get())) {
-            log.debug("Config is up to date, version: {}", currentVersion.get());
+            logger.debug("Config is up to date, version: {}", currentVersion.get());
             return;
         }
         
-        log.info("Config version changed: {} -> {}, syncing...", currentVersion.get(), serverVersion);
+        logger.info("Config version changed: {} -> {}, syncing...", currentVersion.get(), serverVersion);
         
         // 使用 checkConfigUpdate API 获取更新
         GatewayConfigDTO config = adminConfigClient.checkConfigUpdate(currentVersion.get());
@@ -93,7 +95,7 @@ public class ConfigSyncService {
         if (config != null) {
             applyConfig(config);
             currentVersion.set(config.getVersion());
-            log.info("Config synced to version: {}", config.getVersion());
+            logger.info("Config synced to version: {}", config.getVersion());
         }
     }
 
@@ -132,13 +134,16 @@ public class ConfigSyncService {
                     route.getWeight(),
                     route.getWeightName(),
                     route.getReplenishRate(),
-                    route.getBurstCapacity()
+                    route.getBurstCapacity(),
+                    route.getTargetProtocol(),
+                    route.getUrlPattern(),
+                    route.getUrlReplacement()
             );
             routeDefinitions.add(definition);
         }
         
         routeDefinitionRepository.refreshRoutes(routeDefinitions);
-        log.info("Synced {} routes", routes.size());
+        logger.info("Synced {} routes", routes.size());
     }
 
     /**
@@ -149,7 +154,7 @@ public class ConfigSyncService {
         for (IpBlackDTO item : ipBlacklist) {
             IpListCache.put(item.getIp(), item.getRemark());
         }
-        log.info("Synced {} blacklisted IPs", ipBlacklist.size());
+        logger.info("Synced {} blacklisted IPs", ipBlacklist.size());
     }
 
     /**
@@ -160,7 +165,7 @@ public class ConfigSyncService {
         for (WhiteListDTO item : whiteList) {
             WhiteListCache.put(item.getPath(), item.getDescription());
         }
-        log.info("Synced {} white list items", whiteList.size());
+        logger.info("Synced {} white list items", whiteList.size());
     }
 
     /**

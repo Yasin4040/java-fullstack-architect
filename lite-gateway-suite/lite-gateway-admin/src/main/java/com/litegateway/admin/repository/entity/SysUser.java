@@ -22,6 +22,9 @@ public class SysUser {
 
     private String nickname;
 
+    /** 真实姓名 */
+    private String realName;
+
     private String email;
 
     private String phone;

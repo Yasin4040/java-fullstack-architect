@@ -1,7 +1,5 @@
 package com.litegateway.core.dto;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +8,6 @@ import java.util.Map;
  * 从旧项目迁移，包名从 com.jtyjy.gateway 改为 com.litegateway.core
  * 移除了公司特定的字段，保留通用字段
  */
-@Data
 public class UserDTO {
 
     private Long id;
@@ -22,6 +19,78 @@ public class UserDTO {
     private List<String> resources;
     private String token;
     private String uid;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public Integer getUserType() {
+        return userType;
+    }
+
+    public void setUserType(Integer userType) {
+        this.userType = userType;
+    }
+
+    public List<String> getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(List<String> scopes) {
+        this.scopes = scopes;
+    }
+
+    public List<String> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(List<String> authorities) {
+        this.authorities = authorities;
+    }
+
+    public List<String> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<String> resources) {
+        this.resources = resources;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
 
     /**
      * 从 JWT Claims 构建 UserDTO

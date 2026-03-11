@@ -25,6 +25,9 @@ public class UserInfo {
     /** 昵称 */
     private String nickname;
 
+    /** 真实姓名 */
+    private String realName;
+
     /** 邮箱 */
     private String email;
 

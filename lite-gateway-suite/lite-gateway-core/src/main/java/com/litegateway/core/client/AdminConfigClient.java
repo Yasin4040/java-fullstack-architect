@@ -2,7 +2,8 @@ package com.litegateway.core.client;
 
 import com.litegateway.core.common.web.Result;
 import com.litegateway.core.dto.GatewayConfigDTO;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -13,9 +14,10 @@ import reactor.core.publisher.Mono;
  * Admin 配置客户端
  * 从 Admin 模块获取网关配置
  */
-@Slf4j
 @Component
 public class AdminConfigClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminConfigClient.class);
 
     @Autowired
     private WebClient adminWebClient;
@@ -25,25 +27,25 @@ public class AdminConfigClient {
      */
     public GatewayConfigDTO getGatewayConfig() {
         try {
-            log.info("Fetching gateway config from admin...");
+            logger.info("Fetching gateway config from admin...");
             
             Result<GatewayConfigDTO> result = adminWebClient.get()
-                    .uri("/api/config/gateway")
+                    .uri("/gateway/config/gateway")
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Result<GatewayConfigDTO>>() {})
                     .block();
             
             if (result != null && result.isOk()) {
-                log.info("Successfully fetched gateway config, version: {}", 
+                logger.info("Successfully fetched gateway config, version: {}", 
                         result.getData() != null ? result.getData().getVersion() : "null");
                 return result.getData();
             } else {
-                log.warn("Failed to fetch gateway config: {}", 
+                logger.warn("Failed to fetch gateway config: {}", 
                         result != null ? result.getMessage() : "null result");
                 return null;
             }
         } catch (Exception e) {
-            log.error("Error fetching gateway config: {}", e.getMessage(), e);
+            logger.error("Error fetching gateway config: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -54,7 +56,7 @@ public class AdminConfigClient {
     public Long getConfigVersion() {
         try {
             Result<Long> result = adminWebClient.get()
-                    .uri("/api/config/version")
+                    .uri("/gateway/config/version")
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Result<Long>>() {})
                     .block();
@@ -64,7 +66,7 @@ public class AdminConfigClient {
             }
             return null;
         } catch (Exception e) {
-            log.error("Error fetching config version: {}", e.getMessage());
+            logger.error("Error fetching config version: {}", e.getMessage());
             return null;
         }
     }
@@ -78,7 +80,7 @@ public class AdminConfigClient {
         try {
             Result<GatewayConfigDTO> result = adminWebClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/api/config/check")
+                            .path("/gateway/config/check")
                             .queryParam("clientVersion", clientVersion)
                             .build())
                     .retrieve()
@@ -90,7 +92,7 @@ public class AdminConfigClient {
             }
             return null;
         } catch (Exception e) {
-            log.error("Error checking config update: {}", e.getMessage());
+            logger.error("Error checking config update: {}", e.getMessage());
             return null;
         }
     }

@@ -2,7 +2,8 @@ package com.litegateway.core.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litegateway.core.dto.UserDTO;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -23,9 +24,10 @@ import java.util.Map;
  * 将登录用户的 JWT 转化成用户信息，转发出去的 header 增加 json-user 属性
  * 从旧项目迁移，包名从 com.jtyjy.gateway 改为 com.litegateway.core
  */
-@Slf4j
 @Component
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthGlobalFilter.class);
 
     private static final String USER_HEADER = "X-User-Info";
     private static final String AUTHORIZATION = "Authorization";
@@ -56,7 +58,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                         JwtAuthenticationToken jwtToken = (JwtAuthenticationToken) principal;
                         Map<String, Object> claims = jwtToken.getToken().getClaims();
 
-                        log.debug("AuthGlobalFilter - path: {}, user: {}", urlPath, claims.get("sub"));
+                        logger.debug("AuthGlobalFilter - path: {}, user: {}", urlPath, claims.get("sub"));
 
                         UserDTO userDTO = UserDTO.fromClaims(claims);
                         String userJson = objectMapper.writeValueAsString(userDTO);
@@ -64,7 +66,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                         // 将 user 信息插入 header
                         return chain.filter(createNewExchange(exchange, realIp, userJson));
                     } catch (Exception e) {
-                        log.warn("Failed to process JWT token: {}", e.getMessage());
+                        logger.warn("Failed to process JWT token: {}", e.getMessage());
                         return chain.filter(createNewExchange(exchange, realIp, null));
                     }
                 });

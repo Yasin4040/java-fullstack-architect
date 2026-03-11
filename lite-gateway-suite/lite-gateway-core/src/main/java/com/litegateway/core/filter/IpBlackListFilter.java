@@ -1,7 +1,8 @@
 package com.litegateway.core.filter;
 
 import com.litegateway.core.cache.IpListCache;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
@@ -18,9 +19,10 @@ import java.net.InetSocketAddress;
  * IP 黑名单过滤器
  * 从旧项目迁移，包名从 com.jtyjy.gateway 改为 com.litegateway.core
  */
-@Slf4j
 @Component
 public class IpBlackListFilter implements GlobalFilter, Ordered {
+
+    private static final Logger logger = LoggerFactory.getLogger(IpBlackListFilter.class);
 
     private final RemoteAddressResolver remoteAddressResolver = XForwardedRemoteAddressResolver.maxTrustedIndex(1);
 
@@ -31,12 +33,12 @@ public class IpBlackListFilter implements GlobalFilter, Ordered {
             String clientIp = remoteAddress.getAddress().getHostAddress();
 
             if (IpListCache.contains(clientIp)) {
-                log.warn("Blocked request from blacklisted IP: {}", clientIp);
+                logger.warn("Blocked request from blacklisted IP: {}", clientIp);
                 exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                 return exchange.getResponse().setComplete();
             }
         } catch (Exception e) {
-            log.error("IpBlackListFilter error: {}", e.getMessage());
+            logger.error("IpBlackListFilter error: {}", e.getMessage());
         }
         return chain.filter(exchange);
     }

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/config")
+@RequestMapping("/gateway/config")
 @Tag(name = "配置管理", description = "网关配置查询接口，供 Core 模块调用")
 public class ConfigController {
 

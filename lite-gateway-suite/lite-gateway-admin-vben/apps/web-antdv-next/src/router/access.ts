@@ -22,14 +22,20 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
     IFrameView,
   };
 
-  return await generateAccessible(preferences.app.accessMode, {
+  return await generateAccessible('frontend', {
     ...options,
     fetchMenuListAsync: async () => {
       message.loading({
         content: `${$t('common.loadingMenu')}...`,
         duration: 1.5,
       });
-      return await getAllMenusApi();
+      try {
+        return await getAllMenusApi();
+      } catch (error) {
+        console.warn('Failed to get menus from API, using default routes');
+        // 如果API调用失败，使用前端模式的本地路由配置
+        return [];
+      }
     },
     // 可以指定没有权限跳转403页面
     forbiddenComponent,

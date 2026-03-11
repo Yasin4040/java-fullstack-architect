@@ -1,14 +1,26 @@
 package com.litegateway.core.dto;
 
-import lombok.Data;
-
 /**
  * IP黑名单 DTO
  */
-@Data
 public class IpBlackDTO {
 
     private String ip;
-
     private String remark;
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
 }

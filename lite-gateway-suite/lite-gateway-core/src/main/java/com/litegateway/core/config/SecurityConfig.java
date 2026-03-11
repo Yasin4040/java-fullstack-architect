@@ -44,6 +44,8 @@ public class SecurityConfig {
             .authorizeExchange(exchange -> exchange
                 // 允许健康检查端点
                 .pathMatchers("/actuator/**", "/health").permitAll()
+                // 允许路由管理API
+                .pathMatchers("/api/gateway/route/**").permitAll()
                 // 其他请求需要认证
                 .anyExchange().authenticated()
             )

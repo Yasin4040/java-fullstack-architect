@@ -43,13 +43,17 @@ public class SecurityConfig {
             // 禁用 CSRF（使用 JWT 不需要）
             .csrf(AbstractHttpConfigurer::disable)
             
+            // 配置 CORS
+            .cors(cors -> cors
+                .configurationSource(corsConfigurationSource())
+            )
+            
             // 配置授权规则
             .authorizeHttpRequests(auth -> auth
                 // 公开端点
                 .requestMatchers(
-                    "/auth/**",
-                    "/config/**",
-//                    "/config/version",
+                    "/gateway/auth/**",
+                    "/gateway/config/**",
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
                     "/swagger-ui.html",
@@ -70,6 +74,22 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * CORS 配置
+     */
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOriginPatterns(java.util.Arrays.asList("*"));
+        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**

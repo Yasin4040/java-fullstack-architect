@@ -20,4 +20,7 @@ public class LoginRequest {
 
     /** 验证码Key（可选） */
     private String captchaKey;
+
+    /** 选择的账号（可选） */
+    private String selectAccount;
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/gateway/auth")
 @Tag(name = "认证管理", description = "登录、登出、Token 刷新（支持 JWT/OAuth2/LDAP 三种模式）")
 public class AuthController {
 
@@ -81,7 +81,7 @@ public class AuthController {
         return Result.ok(response);
     }
 
-    @GetMapping("/user-info")
+    @GetMapping("/info")
     @Operation(summary = "获取当前用户信息", description = "根据 Token 获取当前登录用户信息")
     public Result<UserInfo> getUserInfo(HttpServletRequest request) {
         String token = extractToken(request);
@@ -103,6 +103,24 @@ public class AuthController {
                 .build();
 
         return Result.ok(userInfo);
+    }
+
+    @GetMapping("/codes")
+    @Operation(summary = "获取用户权限码", description = "获取当前用户的权限码列表")
+    public Result<String[]> getAccessCodes(HttpServletRequest request) {
+        String token = extractToken(request);
+        if (token == null) {
+            return Result.failure(new ErrorCode() {
+                @Override
+                public String getCode() { return "401"; }
+                @Override
+                public String getMessage() { return "未提供认证令牌"; }
+            });
+        }
+
+        UserDetails userDetails = authStrategy.getUserDetails(token);
+        // 假设 roles 就是权限码
+        return Result.ok(userDetails.getRoles().toArray(new String[0]));
     }
 
     @PostMapping("/logout")

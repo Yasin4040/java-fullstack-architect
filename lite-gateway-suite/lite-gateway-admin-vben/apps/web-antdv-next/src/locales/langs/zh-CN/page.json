@@ -8,8 +8,21 @@
     "profile": "个人中心"
   },
   "dashboard": {
-    "title": "概览",
-    "analytics": "分析页",
-    "workspace": "工作台"
+    "title": "仪表盘"
+  },
+  "route": {
+    "title": "路由管理"
+  },
+  "rateLimit": {
+    "title": "限流配置"
+  },
+  "log": {
+    "title": "日志监控"
+  },
+  "system": {
+    "title": "系统管理",
+    "user": {
+      "title": "用户管理"
+    }
   }
 }

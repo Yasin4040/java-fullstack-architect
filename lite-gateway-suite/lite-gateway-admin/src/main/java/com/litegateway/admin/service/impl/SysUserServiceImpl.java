@@ -28,11 +28,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         // 密码加密验证（使用 MD5，生产环境建议使用 BCrypt）
-//        String encryptedPassword = DigestUtils.md5DigestAsHex(
-//                password.getBytes(StandardCharsets.UTF_8)
-//        );
         String encryptedPassword = DigestUtils.md5DigestAsHex(
-                "123456".getBytes(StandardCharsets.UTF_8)
+                password.getBytes(StandardCharsets.UTF_8)
         );
         if (!encryptedPassword.equals(user.getPassword())) {
             log.warn("Invalid password for user: {}", username);

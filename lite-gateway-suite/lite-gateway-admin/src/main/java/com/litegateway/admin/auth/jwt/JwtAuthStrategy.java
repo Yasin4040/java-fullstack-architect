@@ -65,10 +65,12 @@ public class JwtAuthStrategy implements AuthStrategy {
                     .userId(user.getId())
                     .username(user.getUsername())
                     .nickname(user.getNickname())
+                    .realName(user.getRealName())
                     .email(user.getEmail())
                     .phone(user.getPhone())
                     .avatar(user.getAvatar())
                     .roles(Collections.singletonList("ADMIN")) // 默认角色，后续可从数据库读取
+                    .permissions(Collections.emptyList()) // 默认空权限列表
                     .build();
 
             // 5. 返回结果
@@ -111,7 +113,7 @@ public class JwtAuthStrategy implements AuthStrategy {
         Long userId = tokenProvider.extractUserId(refreshToken);
         SysUser user = userService.getById(userId);
 
-        if (user == null || user.getStatus() != 1) {
+        if (user == null || user.getStatus() != 0) {
             return AuthenticationResult.failure("用户不存在或已被禁用");
         }
 
@@ -123,6 +125,12 @@ public class JwtAuthStrategy implements AuthStrategy {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .nickname(user.getNickname())
+                .realName(user.getRealName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .roles(Collections.singletonList("ADMIN"))
+                .permissions(Collections.emptyList())
                 .build();
 
         Long expiresIn = authProperties.getJwt().getAccessTokenExpiration() / 1000;
