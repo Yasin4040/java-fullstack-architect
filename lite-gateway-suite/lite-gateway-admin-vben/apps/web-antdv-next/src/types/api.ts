@@ -133,6 +133,7 @@ export interface LoginParams {
   password: string
   captcha?: string
   captchaKey?: string
+  selectAccount?: string
 }
 
 // 登录响应结果 - 与后端 LoginResponse 保持一致
@@ -149,6 +150,7 @@ export interface UserInfo {
   userId: number
   username: string
   nickname?: string
+  realName?: string
   email?: string
   phone?: string
   avatar?: string

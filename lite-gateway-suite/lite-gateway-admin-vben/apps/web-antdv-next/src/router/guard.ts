@@ -53,11 +53,16 @@ function setupAccessGuard(router: Router) {
     // 基本路由，这些路由不需要进入权限拦截
     if (coreRouteNames.includes(to.name as string)) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
-        return decodeURIComponent(
-          (to.query?.redirect as string) ||
-            userStore.userInfo?.homePath ||
-            preferences.app.defaultHomePath,
-        );
+        // 优先使用 query 中的 redirect，否则使用默认首页
+        const redirectPath =
+          (to.query?.redirect
+            ? decodeURIComponent(to.query.redirect as string)
+            : null) || preferences.app.defaultHomePath;
+
+        return {
+          path: redirectPath,
+          replace: true,
+        };
       }
       return true;
     }
@@ -107,13 +112,25 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
-    const redirectPath = (from.query.redirect ??
-      (to.path === preferences.app.defaultHomePath
-        ? userInfo.homePath || preferences.app.defaultHomePath
-        : to.fullPath)) as string;
+
+    // 确定跳转路径
+    // 优先使用 query 中的 redirect，否则使用目标路径或默认首页
+    let redirectPath: string;
+    if (from.query?.redirect) {
+      redirectPath = decodeURIComponent(from.query.redirect as string);
+    } else if (to.path === preferences.app.defaultHomePath) {
+      redirectPath = preferences.app.defaultHomePath;
+    } else {
+      redirectPath = to.fullPath;
+    }
+
+    // 确保跳转路径是有效的，如果路径不存在则使用默认首页
+    if (!redirectPath || redirectPath === LOGIN_PATH) {
+      redirectPath = preferences.app.defaultHomePath;
+    }
 
     return {
-      ...router.resolve(decodeURIComponent(redirectPath)),
+      path: redirectPath,
       replace: true,
     };
   });

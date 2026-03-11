@@ -1,58 +1,58 @@
 <template>
   <div class="dashboard">
-    <a-card title="仪表盘" class="mb-4">
+    <Card title="仪表盘" class="mb-4">
       <div class="dashboard-stats">
-        <a-statistic
+        <Statistic
           title="路由数量"
           :value="routeCount"
           class="stat-card"
         >
           <template #suffix>
-            <a-tag color="blue">个</a-tag>
+            <Tag color="blue">个</Tag>
           </template>
-        </a-statistic>
-        <a-statistic
+        </Statistic>
+        <Statistic
           title="限流规则"
           :value="rateLimitCount"
           class="stat-card"
         >
           <template #suffix>
-            <a-tag color="green">条</a-tag>
+            <Tag color="green">条</Tag>
           </template>
-        </a-statistic>
-        <a-statistic
+        </Statistic>
+        <Statistic
           title="今日请求"
           :value="todayRequests"
           class="stat-card"
         >
           <template #suffix>
-            <a-tag color="orange">次</a-tag>
+            <Tag color="orange">次</Tag>
           </template>
-        </a-statistic>
-        <a-statistic
+        </Statistic>
+        <Statistic
           title="系统状态"
           :value="systemStatus"
           class="stat-card"
         >
           <template #suffix>
-            <a-tag :color="systemStatus === '正常' ? 'green' : 'red'">
+            <Tag :color="systemStatus === '正常' ? 'green' : 'red'">
               {{ systemStatus }}
-            </a-tag>
+            </Tag>
           </template>
-        </a-statistic>
+        </Statistic>
       </div>
-    </a-card>
+    </Card>
     
-    <a-card title="最近访问日志" class="mb-4">
-      <a-table :columns="logColumns" :data-source="recentLogs" row-key="id" />
-    </a-card>
+    <Card title="最近访问日志" class="mb-4">
+      <Table :columns="logColumns" :data-source="recentLogs" row-key="id" />
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, h } from 'vue'
 import type { TableColumnsType } from 'antdv-next'
-import { Tag } from 'antdv-next'
+import { Card, Table, Tag, Statistic } from 'antdv-next'
 
 const routeCount = ref(12)
 const rateLimitCount = ref(5)
@@ -86,7 +86,7 @@ const logColumns: TableColumnsType<LogItem> = [
     render: (status: number) => {
       return h(Tag, {
         color: status >= 200 && status < 300 ? 'green' : 'red'
-      }, status)
+      }, { default: () => status })
     }
   },
   { title: '时间', dataIndex: 'time', key: 'time' },

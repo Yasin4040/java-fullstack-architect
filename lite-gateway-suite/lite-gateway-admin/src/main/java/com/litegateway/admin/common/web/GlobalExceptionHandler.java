@@ -4,6 +4,8 @@ import com.litegateway.admin.common.ErrorCodeEnum;
 import com.litegateway.admin.common.exception.BizException;
 import com.litegateway.admin.common.exception.ErrorCodeDefinition;
 import com.litegateway.admin.service.ErrorCodeService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +99,28 @@ public class GlobalExceptionHandler {
     public Result<Void> handleIllegalStateException(IllegalStateException e, HttpServletRequest request) {
         log.warn("Illegal state at {}: {}", request.getRequestURI(), e.getMessage());
         return Result.failure(ErrorCodeEnum.USER_ERROR_A0500.getCode(), e.getMessage());
+    }
+    
+    /**
+     * 处理JWT过期异常
+     */
+    @ExceptionHandler(ExpiredJwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<Void> handleExpiredJwtException(ExpiredJwtException e, HttpServletRequest request) {
+        log.warn("JWT expired at {}: {}", request.getRequestURI(), e.getMessage());
+        return Result.failure(ErrorCodeEnum.USER_ERROR_A0230.getCode(), 
+                "用户登录已过期，请重新登录");
+    }
+    
+    /**
+     * 处理其他JWT异常
+     */
+    @ExceptionHandler(JwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<Void> handleJwtException(JwtException e, HttpServletRequest request) {
+        log.warn("JWT error at {}: {}", request.getRequestURI(), e.getMessage());
+        return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                "认证令牌无效，请重新登录");
     }
     
     /**

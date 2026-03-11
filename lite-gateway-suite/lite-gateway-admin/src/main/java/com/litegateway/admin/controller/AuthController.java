@@ -1,8 +1,10 @@
 package com.litegateway.admin.controller;
 
 import com.litegateway.admin.auth.*;
-import com.litegateway.admin.common.exception.ErrorCode;
+import com.litegateway.admin.common.ErrorCodeEnum;
 import com.litegateway.admin.common.web.Result;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,12 +37,15 @@ public class AuthController {
         AuthenticationResult result = authStrategy.authenticate(request);
 
         if (!result.isSuccess()) {
-            return Result.failure(new ErrorCode() {
-                @Override
-                public String getCode() { return "401"; }
-                @Override
-                public String getMessage() { return result.getErrorMessage(); }
-            });
+            // 根据错误消息判断具体的错误类型
+            String errorMessage = result.getErrorMessage();
+            if (errorMessage != null && errorMessage.contains("密码")) {
+                return Result.failure(ErrorCodeEnum.USER_ERROR_A0210.getCode(), errorMessage);
+            } else if (errorMessage != null && errorMessage.contains("禁用")) {
+                return Result.failure(ErrorCodeEnum.USER_ERROR_A0202.getCode(), errorMessage);
+            } else {
+                return Result.failure(ErrorCodeEnum.USER_ERROR_A0220.getCode(), errorMessage);
+            }
         }
 
         LoginResponse response = LoginResponse.builder()
@@ -62,12 +67,9 @@ public class AuthController {
         AuthenticationResult result = authStrategy.refreshToken(request.getRefreshToken());
 
         if (!result.isSuccess()) {
-            return Result.failure(new ErrorCode() {
-                @Override
-                public String getCode() { return "401"; }
-                @Override
-                public String getMessage() { return result.getErrorMessage(); }
-            });
+            // Refresh token 失败，返回登录过期错误码
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0230.getCode(), 
+                    result.getErrorMessage());
         }
 
         LoginResponse response = LoginResponse.builder()
@@ -86,23 +88,33 @@ public class AuthController {
     public Result<UserInfo> getUserInfo(HttpServletRequest request) {
         String token = extractToken(request);
         if (token == null) {
-            return Result.failure(new ErrorCode() {
-                @Override
-                public String getCode() { return "401"; }
-                @Override
-                public String getMessage() { return "未提供认证令牌"; }
-            });
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "未提供认证令牌");
         }
 
-        UserDetails userDetails = authStrategy.getUserDetails(token);
-        // 转换为 UserInfo
-        UserInfo userInfo = UserInfo.builder()
-                .userId(userDetails.getUserId())
-                .username(userDetails.getUsername())
-                .roles(userDetails.getRoles())
-                .build();
+        try {
+            UserDetails userDetails = authStrategy.getUserDetails(token);
+            // 转换为 UserInfo
+            UserInfo userInfo = UserInfo.builder()
+                    .userId(userDetails.getUserId())
+                    .username(userDetails.getUsername())
+                    .roles(userDetails.getRoles())
+                    .build();
 
-        return Result.ok(userInfo);
+            return Result.ok(userInfo);
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT expired when getting user info: {}", e.getMessage());
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0230.getCode(), 
+                    "用户登录已过期，请重新登录");
+        } catch (JwtException e) {
+            log.warn("Invalid JWT when getting user info: {}", e.getMessage());
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "认证令牌无效，请重新登录");
+        } catch (Exception e) {
+            log.error("Failed to get user info: {}", e.getMessage(), e);
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "获取用户信息失败");
+        }
     }
 
     @GetMapping("/codes")
@@ -110,17 +122,27 @@ public class AuthController {
     public Result<String[]> getAccessCodes(HttpServletRequest request) {
         String token = extractToken(request);
         if (token == null) {
-            return Result.failure(new ErrorCode() {
-                @Override
-                public String getCode() { return "401"; }
-                @Override
-                public String getMessage() { return "未提供认证令牌"; }
-            });
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "未提供认证令牌");
         }
 
-        UserDetails userDetails = authStrategy.getUserDetails(token);
-        // 假设 roles 就是权限码
-        return Result.ok(userDetails.getRoles().toArray(new String[0]));
+        try {
+            UserDetails userDetails = authStrategy.getUserDetails(token);
+            // 假设 roles 就是权限码
+            return Result.ok(userDetails.getRoles().toArray(new String[0]));
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT expired when getting access codes: {}", e.getMessage());
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0230.getCode(), 
+                    "用户登录已过期，请重新登录");
+        } catch (JwtException e) {
+            log.warn("Invalid JWT when getting access codes: {}", e.getMessage());
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "认证令牌无效，请重新登录");
+        } catch (Exception e) {
+            log.error("Failed to get access codes: {}", e.getMessage(), e);
+            return Result.failure(ErrorCodeEnum.USER_ERROR_A0231.getCode(), 
+                    "获取权限码失败");
+        }
     }
 
     @PostMapping("/logout")
